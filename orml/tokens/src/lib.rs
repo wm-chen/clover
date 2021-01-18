@@ -107,8 +107,8 @@ impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for BurnDust<T> 
 	}
 }
 
-pub trait Config: frame_system::Trait {
-	type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
+pub trait Config: frame_system::Config {
+	type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
 
 	/// The balance type
 	type Balance: Parameter + Member + AtLeast32BitUnsigned + Default + Copy + MaybeSerializeDeserialize;
@@ -232,7 +232,7 @@ decl_storage! {
 
 decl_event!(
 	pub enum Event<T> where
-		<T as frame_system::Trait>::AccountId,
+		<T as frame_system::Config>::AccountId,
 		<T as Config>::CurrencyId,
 		<T as Config>::Balance
 	{
@@ -354,10 +354,10 @@ impl<T: Config> Module<T> {
 		.map(|(existed, exists, handle_dust, result)| {
 			if existed && !exists {
 				// if existed before, decrease account ref count
-				frame_system::Module::<T>::dec_ref(who);
+				frame_system::Module::<T>::dec_consumers(who);
 			} else if !existed && exists {
 				// if new, increase account ref count
-				frame_system::Module::<T>::inc_ref(who);
+				let _ = frame_system::Module::<T>::inc_consumers(who);
 			}
 
 			if let Some(dust_amount) = handle_dust {
@@ -418,13 +418,13 @@ impl<T: Config> Module<T> {
 			<Locks<T>>::remove(who, currency_id);
 			if existed {
 				// decrease account ref count when destruct lock
-				frame_system::Module::<T>::dec_ref(who);
+				frame_system::Module::<T>::dec_consumers(who);
 			}
 		} else {
 			<Locks<T>>::insert(who, currency_id, locks);
 			if !existed {
 				// increase account ref count when initialize lock
-				frame_system::Module::<T>::inc_ref(who);
+				let _ = frame_system::Module::<T>::inc_consumers(who);
 			}
 		}
 	}

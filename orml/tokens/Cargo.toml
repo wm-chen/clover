@@ -10,22 +10,22 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0.111", optional = true }
 codec = { package = "parity-scale-codec", version = "1.3.0", default-features = false }
-sp-runtime = { version = "2.0.0", default-features = false }
-sp-io = { version = "2.0.0", default-features = false }
-sp-std = { version = "2.0.0", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82", default-features = false }
 
-frame-support = { version = "2.0.0", default-features = false }
-frame-system = { version = "2.0.0", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82", default-features = false }
 
 orml-traits = { path = "../traits", version = "0.3.3-dev", default-features = false }
 
 [dev-dependencies]
-sp-core = { version = "2.0.0", default-features = false }
-pallet-treasury = { version = "2.0.0" }
+sp-core = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82", default-features = false }
+pallet-treasury = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82" }
 #TODO: use cargo version once `bounties` and `tips` pallets are released.
-pallet-bounties = { git = "https://github.com/paritytech/substrate.git", rev = "2eaeb91bc6d20786aa4ad5f5538c0deac46e14cd" }
-pallet-tips = { git = "https://github.com/paritytech/substrate.git", rev = "2eaeb91bc6d20786aa4ad5f5538c0deac46e14cd" }
-pallet-elections-phragmen = { version = "2.0.0" }
+pallet-bounties = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82"  }
+pallet-tips = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82"  }
+pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate.git",  rev = "1d5d13a82" }
 
 clear_on_drop = { version = "0.2.4", features = ["no_cc"] }	# https://github.com/paritytech/substrate/issues/4179
 
