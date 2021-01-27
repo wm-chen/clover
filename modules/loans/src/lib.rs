@@ -176,7 +176,7 @@ impl<T: Config> Module<T> {
 
       // increase account ref if new position
       if p.collateral.is_zero() && p.debit.is_zero() {
-        system::Module::<T>::inc_ref(who);
+        let _ = system::Module::<T>::inc_consumers(who);
       }
 
       p.collateral = new_collateral;
@@ -186,7 +186,7 @@ impl<T: Config> Module<T> {
 
       if p.collateral.is_zero() && p.debit.is_zero() {
         // decrease account ref if zero position
-        system::Module::<T>::dec_ref(who);
+        system::Module::<T>::dec_consumers(who);
 
         // remove position storage if zero position
         *may_be_position = None;

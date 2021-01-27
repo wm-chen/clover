@@ -354,10 +354,10 @@ impl<T: Config> Module<T> {
 		.map(|(existed, exists, handle_dust, result)| {
 			if existed && !exists {
 				// if existed before, decrease account ref count
-				frame_system::Module::<T>::dec_ref(who);
+				frame_system::Module::<T>::dec_consumers(who);
 			} else if !existed && exists {
 				// if new, increase account ref count
-				frame_system::Module::<T>::inc_ref(who);
+				let _ = frame_system::Module::<T>::inc_consumers(who);
 			}
 
 			if let Some(dust_amount) = handle_dust {
@@ -418,13 +418,13 @@ impl<T: Config> Module<T> {
 			<Locks<T>>::remove(who, currency_id);
 			if existed {
 				// decrease account ref count when destruct lock
-				frame_system::Module::<T>::dec_ref(who);
+				frame_system::Module::<T>::dec_consumers(who);
 			}
 		} else {
 			<Locks<T>>::insert(who, currency_id, locks);
 			if !existed {
 				// increase account ref count when initialize lock
-				frame_system::Module::<T>::inc_ref(who);
+				let _ = frame_system::Module::<T>::inc_consumers(who);
 			}
 		}
 	}
