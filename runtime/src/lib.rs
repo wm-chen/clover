@@ -245,7 +245,7 @@ impl pallet_timestamp::Config for Runtime {
 impl evm_accounts::Config for Runtime {
   type Event = Event;
   type Currency = Balances;
-  type KillAccount = frame_system::CallKillAccount<Runtime>;
+  type KillAccount = frame_system::Consumer<Runtime>;
   type AddressMapping = EvmAddressMapping<Runtime>;
   type MergeAccount = Currencies;
   type WeightInfo = weights::evm_accounts::WeightInfo<Runtime>;
@@ -524,7 +524,10 @@ where
 
 parameter_types! {
   pub const CandidacyBond: Balance = 1 * DOLLARS;
-  pub const VotingBond: Balance = 5 * CENTS;
+  	// 1 storage item created, key size is 32 bytes, value size is 16+16.
+	pub const VotingBondBase: Balance = deposit(1, 64);
+	// additional data per vote is 32 bytes (account id).
+	pub const VotingBondFactor: Balance = deposit(0, 32);
   /// Daily council elections.
   pub const TermDuration: BlockNumber = 24 * HOURS;
   pub const DesiredMembers: u32 = 17;
@@ -539,9 +542,9 @@ impl pallet_elections_phragmen::Config for Runtime {
   type InitializeMembers = Council;
   type CurrencyToVote = U128CurrencyToVote;
   type CandidacyBond = CandidacyBond;
-  type VotingBond = VotingBond;
+  type VotingBondBase = VotingBondBase;
+	type VotingBondFactor = VotingBondFactor;
   type LoserCandidate = Treasury;
-  type BadReport = Treasury;
   type KickedMember = Treasury;
   type DesiredMembers = DesiredMembers;
   type DesiredRunnersUp = DesiredRunnersUp;
@@ -886,14 +889,11 @@ impl clover_prices::Config for Runtime {
   type LockOrigin = EnsureRootOrHalfGeneralCouncil;
 }
 
-impl cumulus_parachain_upgrade::Config for Runtime {
+impl cumulus_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
-	type SelfParaId = parachain_info::Module<Runtime>;
-}
-
-impl cumulus_message_broker::Config for Runtime {
-	type DownwardMessageHandlers = ();
+  type SelfParaId = parachain_info::Module<Runtime>;
+  type DownwardMessageHandlers = ();
 	type HrmpMessageHandlers = ();
 }
 
@@ -947,8 +947,8 @@ impl Config for XcmConfig {
 impl xcm_handler::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type UpwardMessageSender = MessageBroker;
-	type HrmpMessageSender = MessageBroker;
+	type UpwardMessageSender = ParachainSystem;
+	type HrmpMessageSender = ParachainSystem;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -965,8 +965,7 @@ construct_runtime!(
     Indices: pallet_indices::{Module, Call, Storage, Config<T>, Event<T>},
     Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
 
-    ParachainUpgrade: cumulus_parachain_upgrade::{Module, Call, Storage, Inherent, Event},
-    MessageBroker: cumulus_message_broker::{Module, Storage, Call, Inherent},
+    ParachainSystem: cumulus_parachain_system::{Module, Call, Storage, Inherent, Event},
 
     TransactionPayment: pallet_transaction_payment::{Module, Storage},
 

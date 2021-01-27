@@ -10,7 +10,7 @@
 use codec::Encode;
 use frame_support::{
 	decl_error, decl_event, decl_module, decl_storage, ensure,
-	traits::{Currency, Happened, OnKilledAccount, ReservableCurrency, StoredMap},
+	traits::{Currency, HandleLifetime, OnKilledAccount, ReservableCurrency, StoredMap},
 	weights::Weight,
 	StorageMap,
 };
@@ -48,7 +48,7 @@ pub trait Config: frame_system::Config {
 	type MergeAccount: MergeAccount<Self::AccountId>;
 
 	/// Handler to kill account in system.
-	type KillAccount: Happened<Self::AccountId>;
+	type KillAccount: HandleLifetime<Self::AccountId>;
 
 	/// Weight information for the extrinsics in this module.
 	type WeightInfo: WeightInfo;
@@ -112,13 +112,13 @@ decl_module! {
 				// check if the evm padded address already exists
 				let account_id = T::AddressMapping::into_account_id(&eth_address);
 				let mut nonce = <T as frame_system::Config>::Index::default();
-				if frame_system::Module::<T>::is_explicit(&account_id) {
+				if frame_system::Account::<T>::contains_key(&account_id) {
 					// merge balance from `evm padded address` to `origin`
 					T::MergeAccount::merge_account(&account_id, &who)?;
 
 					nonce = frame_system::Module::<T>::account_nonce(&account_id);
 					// finally kill the account
-					T::KillAccount::happened(&account_id);
+					T::KillAccount::killed(&account_id);
 				}
 				//	make the origin nonce the max between origin amd evm padded address
 				let origin_nonce = frame_system::Module::<T>::account_nonce(&who);

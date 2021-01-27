@@ -12,7 +12,7 @@ use frame_support::{
   decl_error, decl_event, decl_module, decl_storage, ensure,
   debug,
   dispatch::{PaysFee, WeighData},
-  traits::{Get, Happened},
+  traits::{Get, },
   weights::constants::WEIGHT_PER_MICROS,
   Parameter,
   weights::{ClassifyDispatch, DispatchClass, Pays, Weight},
@@ -26,6 +26,7 @@ use num_traits::FromPrimitive;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use orml_utilities::with_transaction_result;
 use primitives::{Balance, CurrencyId, Price, Rate, Ratio};
+use clover_traits::Happened;
 
 use sp_runtime::{
   traits::{
