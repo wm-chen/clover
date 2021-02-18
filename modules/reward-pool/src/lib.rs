@@ -57,7 +57,7 @@ pub struct PoolInfo<Share: HasCompact, Balance: HasCompact + From<Share>, Block:
   pub total_rewards_useable: Balance,
 
   /// last reward grant block number
-  #[codec[compact]]
+  #[codec(compact)]
   pub last_update_block: Block,
 }
 

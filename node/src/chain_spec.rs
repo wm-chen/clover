@@ -1,4 +1,4 @@
-use cumulus_primitives::ParaId;
+use cumulus_primitives_core::ParaId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use serde_json::json;
 use serde::{Deserialize, Serialize};

@@ -4,8 +4,8 @@ use std::{
   sync::{Arc,},
 };
 
-use cumulus_network::build_block_announce_validator;
-use cumulus_service::{
+use cumulus_client_network::build_block_announce_validator;
+use cumulus_client_service::{
   prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 
@@ -18,6 +18,7 @@ use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
+use sc_telemetry::TelemetrySpan;
 use fc_consensus::FrontierBlockImport;
 
 // Our native executor instance.
@@ -48,18 +49,19 @@ pub fn new_partial(config: &Configuration) -> Result<sc_service::PartialComponen
     (),
     sp_consensus::import_queue::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
     sc_transaction_pool::FullPool<Block, FullClient>,
-    (FrontierBlockImport<Block, Arc<FullClient>, FullClient>, Option<sc_telemetry::TelemetrySpan>),
+    FrontierBlockImport<Block, Arc<FullClient>, FullClient>,
 >, ServiceError> {
   let inherent_data_providers = build_inherent_data_providers()?;
 
-  let (client, backend, keystore_container, task_manager, telemetry_span) =
+  let (client, backend, keystore_container, task_manager) =
     sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
   let client = Arc::new(client);
-  
+
   let registry = config.prometheus_registry();
 
   let transaction_pool = sc_transaction_pool::BasicPool::new_full(
     config.transaction_pool.clone(),
+    config.role.is_authority().into(),
     config.prometheus_registry(),
     task_manager.spawn_handle(),
     client.clone(),
@@ -67,7 +69,7 @@ pub fn new_partial(config: &Configuration) -> Result<sc_service::PartialComponen
 
   let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
-  let import_queue = cumulus_consensus::import_queue::import_queue(
+  let import_queue = cumulus_client_consensus::import_queue::import_queue(
     client.clone(),
     frontier_block_import.clone(),
     inherent_data_providers.clone(),
@@ -77,11 +79,11 @@ pub fn new_partial(config: &Configuration) -> Result<sc_service::PartialComponen
 
 
   Ok(sc_service::PartialComponents {
-    client, backend, task_manager, keystore_container, 
-    select_chain: (), 
+    client, backend, task_manager, keystore_container,
+    select_chain: (),
     import_queue, transaction_pool,
     inherent_data_providers,
-    other: (frontier_block_import, telemetry_span),
+    other: frontier_block_import,
   })
 }
 
@@ -110,7 +112,7 @@ where
   let parachain_config = prepare_node_config(parachain_config);
 
   let polkadot_full_node =
-    cumulus_service::build_polkadot_full_node(polkadot_config, collator_key.public()).map_err(
+    cumulus_client_service::build_polkadot_full_node(polkadot_config, collator_key.public()).map_err(
       |e| match e {
         polkadot_service::Error::Sub(x) => x,
         s => format!("{}", s).into(),
@@ -118,7 +120,6 @@ where
     )?;
 
   let params = new_partial(&parachain_config)?;
-  let telemetry_span = params.other.1;
 
   let client = params.client.clone();
   let backend = params.backend.clone();
@@ -133,7 +134,7 @@ where
   let transaction_pool = params.transaction_pool.clone();
   let mut task_manager = params.task_manager;
   let import_queue = params.import_queue;
-  let block_import = params.other.0;
+  let block_import = params.other;
   let (network, network_status_sinks, system_rpc_tx, start_network) =
     sc_service::build_network(sc_service::BuildNetworkParams {
       config: &parachain_config,
@@ -170,6 +171,9 @@ where
     })
   };
 
+  let telemetry_span = TelemetrySpan::new();
+	let _telemetry_span_entered = telemetry_span.enter();
+
   sc_service::spawn_tasks(sc_service::SpawnTasksParams {
     on_demand: None,
     remote_blockchain: None,
@@ -183,7 +187,7 @@ where
     network: network.clone(),
     network_status_sinks,
     system_rpc_tx,
-    telemetry_span,
+    telemetry_span: Some(telemetry_span.clone()),
   })?;
 
   let announce_block = {
