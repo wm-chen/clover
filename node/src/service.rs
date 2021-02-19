@@ -4,6 +4,9 @@ use std::{
   sync::{Arc,},
 };
 
+use cumulus_client_consensus_relay_chain::{
+	build_relay_chain_consensus, BuildRelayChainConsensusParams,
+};
 use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
   prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -69,7 +72,7 @@ pub fn new_partial(config: &Configuration) -> Result<sc_service::PartialComponen
 
   let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone(), true);
 
-  let import_queue = cumulus_client_consensus::import_queue::import_queue(
+  let import_queue = cumulus_client_consensus_relay_chain::import_queue(
     client.clone(),
     frontier_block_import.clone(),
     inherent_data_providers.clone(),
@@ -204,22 +207,28 @@ where
     );
     let spawner = task_manager.spawn_handle();
 
-    let polkadot_backend = polkadot_full_node.backend.clone();
+    let parachain_consensus = build_relay_chain_consensus(BuildRelayChainConsensusParams {
+			para_id: id,
+			proposer_factory,
+			inherent_data_providers: params.inherent_data_providers,
+			block_import,
+			relay_chain_client: polkadot_full_node.client.clone(),
+			relay_chain_backend: polkadot_full_node.backend.clone(),
+		});
+
+    //let polkadot_backend = polkadot_full_node.backend.clone();
 
     let params = StartCollatorParams {
       para_id: id,
-      block_import,
-      proposer_factory,
-      inherent_data_providers: params.inherent_data_providers,
       block_status: client.clone(),
       announce_block,
       client: client.clone(),
       task_manager: &mut task_manager,
       collator_key,
-      polkadot_full_node,
+      relay_chain_full_node: polkadot_full_node,
       spawner,
       backend,
-      polkadot_backend,
+      parachain_consensus,
     };
 
     start_collator(params).await?;
