@@ -76,7 +76,7 @@ pub fn new_partial(config: &Configuration) -> Result<sc_service::PartialComponen
     client.clone(),
     frontier_block_import.clone(),
     inherent_data_providers.clone(),
-    &task_manager.spawn_handle(),
+    &task_manager.spawn_essential_handle(),
     registry.clone(),
   )?;
 

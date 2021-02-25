@@ -30,17 +30,17 @@ use sp_api::impl_runtime_apis;
 use polkadot_parachain::primitives::Sibling;
 use xcm::v0::{Junction, MultiLocation, NetworkId};
 use xcm_builder::{
-	AccountId32Aliases, CurrencyAdapter, LocationInverter, ParentIsDefault, RelayChainAsNative,
-	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
-	SovereignSignedViaLocation,
+  AccountId32Aliases, CurrencyAdapter, LocationInverter, ParentIsDefault, RelayChainAsNative,
+  SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
+  SovereignSignedViaLocation,
 };
 use xcm_executor::{
-	traits::{IsConcrete, NativeAsset},
-	Config, XcmExecutor,
+  traits::{IsConcrete, NativeAsset},
+  Config, XcmExecutor,
 };
 
 pub use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use pallet_contracts::WeightInfo;
+use pallet_contracts::weights::WeightInfo;
 pub use pallet_transaction_payment::{FeeDetails, Multiplier, TargetedFeeAdjustment, };
 use sp_version::RuntimeVersion;
 #[cfg(feature = "std")]
@@ -134,8 +134,8 @@ pub const DAYS: BlockNumber = HOURS * 24;
 
 #[derive(codec::Encode, codec::Decode)]
 pub enum XCMPMessage<XAccountId, XBalance> {
-	/// Transfer tokens to the given account from the Parachain account.
-	TransferToken(XAccountId, XBalance),
+  /// Transfer tokens to the given account from the Parachain account.
+  TransferToken(XAccountId, XBalance),
 }
 
 /// The version information used to identify this runtime when compiled natively.
@@ -158,22 +158,22 @@ parameter_types! {
   pub const BlockHashCount: BlockNumber = 2400;
   /// We allow for 2 seconds of compute with a 6 second average block time.
   pub BlockWeights: limits::BlockWeights = limits::BlockWeights::builder()
-		.base_block(BlockExecutionWeight::get())
-		.for_class(DispatchClass::all(), |weights| {
-			weights.base_extrinsic = ExtrinsicBaseWeight::get();
-		})
-		.for_class(DispatchClass::Normal, |weights| {
-			weights.max_total = Some(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
-		})
-		.for_class(DispatchClass::Operational, |weights| {
-			weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
-			// Operational transactions have an extra reserved space, so that they
-			// are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
-			weights.reserved = Some(
-				MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT,
-			);
-		})
-		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
+    .base_block(BlockExecutionWeight::get())
+    .for_class(DispatchClass::all(), |weights| {
+      weights.base_extrinsic = ExtrinsicBaseWeight::get();
+    })
+    .for_class(DispatchClass::Normal, |weights| {
+      weights.max_total = Some(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
+    })
+    .for_class(DispatchClass::Operational, |weights| {
+      weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
+      // Operational transactions have an extra reserved space, so that they
+      // are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
+      weights.reserved = Some(
+        MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT,
+      );
+    })
+    .avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
     .build_or_panic();
 
   pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
@@ -265,7 +265,7 @@ impl FeeCalculator for FixedGasPrice {
 }
 
 parameter_types! {
-	pub const ChainId: u64 = 1337;
+  pub const ChainId: u64 = 1337;
 }
 
 impl clover_evm::Config for Runtime {
@@ -387,7 +387,7 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub OffencesWeightSoftLimit: Weight = Perbill::from_percent(60) * MAXIMUM_BLOCK_WEIGHT;
+  pub OffencesWeightSoftLimit: Weight = Perbill::from_percent(60) * MAXIMUM_BLOCK_WEIGHT;
 }
 
 parameter_types! {
@@ -524,10 +524,10 @@ where
 
 parameter_types! {
   pub const CandidacyBond: Balance = 1 * DOLLARS;
-  	// 1 storage item created, key size is 32 bytes, value size is 16+16.
-	pub const VotingBondBase: Balance = deposit(1, 64);
-	// additional data per vote is 32 bytes (account id).
-	pub const VotingBondFactor: Balance = deposit(0, 32);
+    // 1 storage item created, key size is 32 bytes, value size is 16+16.
+  pub const VotingBondBase: Balance = deposit(1, 64);
+  // additional data per vote is 32 bytes (account id).
+  pub const VotingBondFactor: Balance = deposit(0, 32);
   /// Daily council elections.
   pub const TermDuration: BlockNumber = 24 * HOURS;
   pub const DesiredMembers: u32 = 17;
@@ -543,7 +543,7 @@ impl pallet_elections_phragmen::Config for Runtime {
   type CurrencyToVote = U128CurrencyToVote;
   type CandidacyBond = CandidacyBond;
   type VotingBondBase = VotingBondBase;
-	type VotingBondFactor = VotingBondFactor;
+  type VotingBondFactor = VotingBondFactor;
   type LoserCandidate = Treasury;
   type KickedMember = Treasury;
   type DesiredMembers = DesiredMembers;
@@ -709,9 +709,9 @@ where
 }
 
 parameter_type_with_key! {
-	pub ExistentialDeposits: |currency_id: CurrencyId| -> Balance {
-		Default::default()
-	};
+  pub ExistentialDeposits: |currency_id: CurrencyId| -> Balance {
+    Default::default()
+  };
 }
 
 impl orml_tokens::Config for Runtime {
@@ -826,23 +826,24 @@ pub const fn deposit(items: u32, bytes: u32) -> Balance {
 
 parameter_types! {
   pub const TombstoneDeposit: Balance = 16 * MILLICENTS;
-	pub const SurchargeReward: Balance = 150 * MILLICENTS;
-	pub const SignedClaimHandicap: u32 = 2;
-	pub const MaxDepth: u32 = 32;
-	pub const MaxValueSize: u32 = 16 * 1024;
-	pub const DepositPerContract: Balance = TombstoneDeposit::get();
-	pub const DepositPerStorageByte: Balance = deposit(0, 1);
-	pub const DepositPerStorageItem: Balance = deposit(1, 0);
-	pub RentFraction: Perbill = Perbill::from_rational_approximation(1u32, 30 * DAYS);
-	// The lazy deletion runs inside on_initialize.
-	pub DeletionWeightLimit: Weight = AVERAGE_ON_INITIALIZE_RATIO *
-		BlockWeights::get().max_block;
-	// The weight needed for decoding the queue should be less or equal than a fifth
-	// of the overall weight dedicated to the lazy deletion.
-	pub DeletionQueueDepth: u32 = ((DeletionWeightLimit::get() / (
-			<Runtime as pallet_contracts::Config>::WeightInfo::on_initialize_per_queue_item(1) -
-			<Runtime as pallet_contracts::Config>::WeightInfo::on_initialize_per_queue_item(0)
-		)) / 5) as u32;
+  pub const SurchargeReward: Balance = 150 * MILLICENTS;
+  pub const SignedClaimHandicap: u32 = 2;
+  pub const MaxDepth: u32 = 32;
+  pub const MaxValueSize: u32 = 16 * 1024;
+  pub const MaxCodeSize: u32 = 128 * 1024;
+  pub const DepositPerContract: Balance = TombstoneDeposit::get();
+  pub const DepositPerStorageByte: Balance = deposit(0, 1);
+  pub const DepositPerStorageItem: Balance = deposit(1, 0);
+  pub RentFraction: Perbill = Perbill::from_rational_approximation(1u32, 30 * DAYS);
+  // The lazy deletion runs inside on_initialize.
+  pub DeletionWeightLimit: Weight = AVERAGE_ON_INITIALIZE_RATIO *
+    BlockWeights::get().max_block;
+  // The weight needed for decoding the queue should be less or equal than a fifth
+  // of the overall weight dedicated to the lazy deletion.
+  pub DeletionQueueDepth: u32 = ((DeletionWeightLimit::get() / (
+      <Runtime as pallet_contracts::Config>::WeightInfo::on_initialize_per_queue_item(1) -
+      <Runtime as pallet_contracts::Config>::WeightInfo::on_initialize_per_queue_item(0)
+    )) / 5) as u32;
 }
 
 impl pallet_contracts::Config for Runtime {
@@ -854,17 +855,18 @@ impl pallet_contracts::Config for Runtime {
   type SignedClaimHandicap = SignedClaimHandicap;
   type TombstoneDeposit = TombstoneDeposit;
   type DepositPerContract = DepositPerContract;
-	type DepositPerStorageByte = DepositPerStorageByte;
-	type DepositPerStorageItem = DepositPerStorageItem;
+  type DepositPerStorageByte = DepositPerStorageByte;
+  type DepositPerStorageItem = DepositPerStorageItem;
   type RentFraction = RentFraction;
   type SurchargeReward = SurchargeReward;
-	type MaxDepth = MaxDepth;
-	type MaxValueSize = MaxValueSize;
-	type WeightPrice = pallet_transaction_payment::Module<Self>;
-	type WeightInfo = ();
+  type MaxDepth = MaxDepth;
+  type MaxValueSize = MaxValueSize;
+  type WeightPrice = pallet_transaction_payment::Module<Self>;
+  type WeightInfo = pallet_contracts::weights::SubstrateWeight<Self>;
   type ChainExtension = ();
   type DeletionQueueDepth = DeletionQueueDepth;
-	type DeletionWeightLimit = DeletionWeightLimit;
+  type DeletionWeightLimit = DeletionWeightLimit;
+  type MaxCodeSize = MaxCodeSize;
 }
 
 parameter_types! {
@@ -890,65 +892,65 @@ impl clover_prices::Config for Runtime {
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
-	type Event = Event;
-	type OnValidationData = ();
+  type Event = Event;
+  type OnValidationData = ();
   type SelfParaId = parachain_info::Module<Runtime>;
   type DownwardMessageHandlers = ();
-	type HrmpMessageHandlers = ();
+  type HrmpMessageHandlers = ();
 }
 
 impl parachain_info::Config for Runtime {}
 
 parameter_types! {
-	pub const RococoLocation: MultiLocation = MultiLocation::X1(Junction::Parent);
-	pub const RococoNetwork: NetworkId = NetworkId::Polkadot;
-	pub RelayChainOrigin: Origin = cumulus_pallet_xcm_handler::Origin::Relay.into();
-	pub Ancestry: MultiLocation = Junction::Parachain {
-		id: ParachainInfo::parachain_id().into()
-	}.into();
+  pub const RococoLocation: MultiLocation = MultiLocation::X1(Junction::Parent);
+  pub const RococoNetwork: NetworkId = NetworkId::Polkadot;
+  pub RelayChainOrigin: Origin = cumulus_pallet_xcm_handler::Origin::Relay.into();
+  pub Ancestry: MultiLocation = Junction::Parachain {
+    id: ParachainInfo::parachain_id().into()
+  }.into();
 }
 
 type LocationConverter = (
-	ParentIsDefault<AccountId>,
-	SiblingParachainConvertsVia<Sibling, AccountId>,
-	AccountId32Aliases<RococoNetwork, AccountId>,
+  ParentIsDefault<AccountId>,
+  SiblingParachainConvertsVia<Sibling, AccountId>,
+  AccountId32Aliases<RococoNetwork, AccountId>,
 );
 
 type LocalAssetTransactor = CurrencyAdapter<
-	// Use this currency:
-	Balances,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<RococoLocation>,
-	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
-	LocationConverter,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
+  // Use this currency:
+  Balances,
+  // Use this currency when it is a fungible asset matching the given location or name:
+  IsConcrete<RococoLocation>,
+  // Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
+  LocationConverter,
+  // Our chain's account ID type (we can't get away without mentioning it explicitly):
+  AccountId,
 >;
 
 type LocalOriginConverter = (
-	SovereignSignedViaLocation<LocationConverter, Origin>,
-	RelayChainAsNative<RelayChainOrigin, Origin>,
-	SiblingParachainAsNative<cumulus_pallet_xcm_handler::Origin, Origin>,
-	SignedAccountId32AsNative<RococoNetwork, Origin>,
+  SovereignSignedViaLocation<LocationConverter, Origin>,
+  RelayChainAsNative<RelayChainOrigin, Origin>,
+  SiblingParachainAsNative<cumulus_pallet_xcm_handler::Origin, Origin>,
+  SignedAccountId32AsNative<RococoNetwork, Origin>,
 );
 
 pub struct XcmConfig;
 impl Config for XcmConfig {
-	type Call = Call;
-	type XcmSender = XcmHandler;
-	// How to withdraw and deposit an asset.
-	type AssetTransactor = LocalAssetTransactor;
-	type OriginConverter = LocalOriginConverter;
-	type IsReserve = NativeAsset;
-	type IsTeleporter = ();
-	type LocationInverter = LocationInverter<Ancestry>;
+  type Call = Call;
+  type XcmSender = XcmHandler;
+  // How to withdraw and deposit an asset.
+  type AssetTransactor = LocalAssetTransactor;
+  type OriginConverter = LocalOriginConverter;
+  type IsReserve = NativeAsset;
+  type IsTeleporter = ();
+  type LocationInverter = LocationInverter<Ancestry>;
 }
 
 impl cumulus_pallet_xcm_handler::Config for Runtime {
-	type Event = Event;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type UpwardMessageSender = ParachainSystem;
-	type HrmpMessageSender = ParachainSystem;
+  type Event = Event;
+  type XcmExecutor = XcmExecutor<XcmConfig>;
+  type UpwardMessageSender = ParachainSystem;
+  type HrmpMessageSender = ParachainSystem;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -970,7 +972,7 @@ construct_runtime!(
     TransactionPayment: pallet_transaction_payment::{Module, Storage},
 
     ParachainInfo: parachain_info::{Module, Storage, Config},
-		XcmHandler: cumulus_pallet_xcm_handler::{Module, Event<T>, Origin},
+    XcmHandler: cumulus_pallet_xcm_handler::{Module, Event<T>, Origin},
 
     Currencies: orml_currencies::{Module, Call, Event<T>},
     Tokens: orml_tokens::{Module, Storage, Event<T>, Config<T>},
@@ -1161,8 +1163,8 @@ impl_runtime_apis! {
       TransactionPayment::query_info(uxt, len)
     }
     fn query_fee_details(uxt: <Block as BlockT>::Extrinsic, len: u32) -> FeeDetails<Balance> {
-			TransactionPayment::query_fee_details(uxt, len)
-		}
+      TransactionPayment::query_fee_details(uxt, len)
+    }
   }
 
   impl clover_rpc_runtime_api::CurrencyBalanceApi<Block, AccountId, CurrencyId, Balance> for Runtime {
