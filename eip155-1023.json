@@ -1,11 +1,11 @@
 {
     "name": "Clover Testnet",
-    "chain": "clover",
+    "chain": "Clover",
     "network": "clover testnet",
     "rpc": [],
     "faucets": [],
-    "nativeCurrency1": {
-        "name": "clover",
+    "nativeCurrency": {
+        "name": "Clover",
         "symbol": "CLV",
         "decimals": 18
     },

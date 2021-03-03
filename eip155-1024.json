@@ -1,11 +1,11 @@
 {
     "name": "Clover Mainnet",
-    "chain": "clover",
+    "chain": "Clover",
     "network": "clover mainnet",
     "rpc": [],
     "faucets": [],
-    "nativeCurrency1": {
-        "name": "clover",
+    "nativeCurrency": {
+        "name": "Clover",
         "symbol": "CLV",
         "decimals": 18
     },
